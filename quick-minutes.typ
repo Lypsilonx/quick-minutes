@@ -3,13 +3,13 @@
 #let lang(it, content) = [#text(lang: it, style: "italic")[#content]] //change the language for a word or two or a longer period for language appropriate smartquotes and stuff. Also italicises the foreign text
 
 #let minutes(
-  body-name: none,
-  event-name: none,
   date: none,
   present: (),
   chairperson: none,
   secretary: none,
 
+  body-name: none,
+  event-name: none,
   awareness: none,
   translation: none,
   cosigner: none,
@@ -738,13 +738,9 @@
           }  else if (type(date) == datetime) {
             [#date.display(date-format)]
           }else {date}\
-          #if (body-name == none) {
-            [MISSING]
-            add-warning("body-name is missing", id: "BODY")
-          } else {body-name}: #if (event-name == none) {
-            [MISSING]
-            add-warning("event-name is missing", id: "EVENT")
-          } else {event-name}\
+          #if (body-name != none) {body-name}
+          #if (body-name != none and event-name != none) [: ]
+          #if (event-name != none) {event-name}
         ]
       )
     ],
