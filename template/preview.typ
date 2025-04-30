@@ -1,4 +1,4 @@
-#import "@preview/quick-minutes:1.2.1": *
+#import "@preview/quick-minutes:1.2.2": *
 
 #show: minutes.with(
   locale: "de",
@@ -13,7 +13,7 @@
     "Protokoll, Antin",
     "Günthers, Günther",
   ),
-  custom-name-style: noun,
+  custom-name-style: (name, _) => noun(name),
   display-all-warnings: true,
   enable-help-text: true,
   translation-overrides: ("ITEM": "Punkt"),

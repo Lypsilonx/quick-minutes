@@ -1,7 +1,7 @@
 [package]
 authors = ["Katharina Thöle <@katharinathoele>", "Lyx Rothböck <@Lypsilonx>"]
 categories = ["layout"]
-compiler = "0.12.0"
+compiler = "0.13.0"
 description = "A typst template for the keeping of minutes."
 disciplines = ["business", "communication", "education", "journalism", "law"]
 entrypoint = "quick-minutes.typ"
@@ -10,7 +10,7 @@ keywords = ["protocol", "minutes", "time", "timekeeping", "recording", "record"]
 license = "MIT"
 name = "quick-minutes"
 repository = "https://github.com/Lypsilonx/quick-minutes"
-version = "1.2.1"
+version = "1.2.2"
 
 [template]
 entrypoint = "preview.typ"

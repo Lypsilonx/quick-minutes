@@ -1,4 +1,4 @@
-#import "@preview/quick-minutes:1.2.1": *
+#import "@preview/quick-minutes:1.2.2": *
 
 #show: minutes.with(
   locale: "de",
@@ -17,7 +17,7 @@
     "Adels von der Titel",
     "Nummerierter 1",
     "Nummerierter 2",
-  )
+  ),
 )
 
 /Einzelname

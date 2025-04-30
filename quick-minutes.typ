@@ -1,6 +1,9 @@
-#let noun(it) = [#text(features: ("smcp", ), tracking: 0.025em)[#it]] //small caps with proper tracking
+#let noun(it) = [#text(features: ("smcp",), tracking: 0.025em)[#it]] //small caps with proper tracking
 #let versal(it) = [#text(tracking: 0.125em, number-type: "lining")[#upper[#it]]] //all caps with proper tracking
-#let lang(it, content) = [#text(lang: it, style: "italic")[#content]] //change the language for a word or two or a longer period for language appropriate smartquotes and stuff. Also italicises the foreign text
+#let lang(it, content) = [#text(
+    lang: it,
+    style: "italic",
+  )[#content]] //change the language for a word or two or a longer period for language appropriate smartquotes and stuff. Also italicises the foreign text
 
 #let minutes(
   body-name: none,
@@ -10,29 +13,28 @@
   not-voting: (),
   chairperson: none,
   secretary: none,
-
   awareness: none,
   translation: none,
   cosigner: none,
   cosigner-name: none,
-
   logo: none,
   custom-header: auto,
   custom-footer: auto,
   custom-background: auto,
   custom-head-section: auto,
-  custom-name-format: (first-name, last-name, numbered) => [
+  custom-name-format: (first-name, last-name, numbered, type-id) => [
     #if (numbered) [#first-name #last-name] else [
       #if (last-name != none) [#last-name, ]#first-name
     ]
   ],
-  custom-name-style: (name) => name,
+  custom-name-style: (name, type-id) => name,
   item-numbering: none,
   time-format: none,
   date-format: none,
   timestamp-margin: 10pt,
   line-numbering: 5,
   fancy-decisions: false,
+  indent-decisions: true,
   fancy-dialogue: false,
   hole-mark: true,
   separator-lines: true,
@@ -43,20 +45,18 @@
   title-page: false,
   number-present: false,
   show-arrival-time: true,
-
   display-all-warnings: false,
   hide-warnings: false,
   warning-color: red,
   enable-help-text: false,
-  
-  body
+  body,
 ) = {
   // Constants
   let status-present = "present"
   let status-away = "away"
   let status-away-perm = "away-perm"
   let status-none = "none"
-  
+
   // Variables
   let warnings = state("warnings", (:))
   let all = state("all", ())
@@ -67,27 +67,30 @@
   let last-time = state("last-time", none)
   let start-time = state("start-time", none)
 
-  let help-text() = if (enable-help-text) {context[
-    #set text(fill: blue)
-    #block(breakable: false)[
-      last-time: #last-time.get()
+  let help-text() = if (enable-help-text) {
+    context [
+      #set text(fill: blue)
+      #block(breakable: false)[
+        last-time: #last-time.get()
 
-      #grid(columns: 3 * (1fr,),
-        [
-          present: #pres.get().len()\
-          #pres.get().map(x => "    " + x).join("\n")\
-        ],
-        [
-          away: #away.get().len()\
-          #away.get().map(x => "    " + x).join("\n")\
-        ],
-        [
-          gone: #away-perm.get().len()\
-          #away-perm.get().map(x => "    " + x).join("\n")\
-        ]
-      )
+        #grid(
+          columns: 3 * (1fr,),
+          [
+            present: #pres.get().len()\
+            #pres.get().map(x => "    " + x).join("\n")\
+          ],
+          [
+            away: #away.get().len()\
+            #away.get().map(x => "    " + x).join("\n")\
+          ],
+          [
+            gone: #away-perm.get().len()\
+            #away-perm.get().map(x => "    " + x).join("\n")\
+          ]
+        )
+      ]
     ]
-  ]}
+  }
 
   // Localization
   let lang = json("lang.json")
@@ -102,7 +105,7 @@
     for arg in args.pos().enumerate() {
       translation = translation.replace("[" + str(arg.at(0)) + "]", str(arg.at(1)))
     }
-    
+
     return translation
   }
 
@@ -129,11 +132,9 @@
       } else {
         warnings.get().values()
       }
-      if (list.len() < 1) {return}
+      if (list.len() < 1) { return }
       align(center)[
-        #set par.line(
-          number-clearance: 200pt
-        )
+        #set par.line(number-clearance: 200pt)
         #if (end-list) [
           #set text(fill: warning-color)
           Warnings:
@@ -142,20 +143,24 @@
           #set align(left)
           #grid(
             row-gutter: 1em,
-            ..list.map(x => link(x.at(1), if (end-list) {
-              [Page #str(x.at(1).page())/*, Line #x.at(1).line()*/: ]
-            } + x.at(0)))
+            ..list.map(x => link(
+              x.at(1),
+              if (end-list) {
+                [Page #str(x.at(1).page())/*, Line #x.at(1).line()*/: ]
+              }
+                + x.at(0),
+            ))
           )
         ]
       ]
     }
   }
-  
+
   let add-warning(text, id: none, display: false) = [
     #context [
       #let location = here()
       #warnings.update(x => {
-        let id = if (id == none) {str(x.len())} else {id}
+        let id = if (id == none) { str(x.len()) } else { id }
         if (not x.keys().contains(id)) {
           x.insert(id, (text, location))
         }
@@ -187,24 +192,24 @@
       [#time.display(time-format)]
     }
   }
-  
+
   let format-time(time-string, display: true, hours-manual: none) = [
     #context [
       #let time-string = time-string
-      
+
       #assert(time-string.match(regex("[0-9]+")) != none, message: "Invalid Time Format \"" + time-string + "\"")
-      
+
       #if (time-string.len() == 1) {
-        time-string = if (hours-manual == none) {hours.get()} else {hours-manual} + "0" + time-string
+        time-string = if (hours-manual == none) { hours.get() } else { hours-manual } + "0" + time-string
       } else if (time-string.len() == 2) {
-        time-string = if (hours-manual == none) {hours.get()} else {hours-manual} + time-string
+        time-string = if (hours-manual == none) { hours.get() } else { hours-manual } + time-string
       } else {
         if (time-string.len() == 3) {
           time-string = "0" + time-string
         }
-        
+
         assert(time-string.len() == 4, message: "Invalid Time Format \"" + time-string + "\"")
-        
+
         hours.update(time-string.slice(0, 2))
       }
 
@@ -223,17 +228,15 @@
       }
     ]
   ]
-  
+
   let timed(time, it) = [
     #if (it == "") {
       format-time(time, display: false)
     } else {
-      set par.line(
-        number-clearance: 200pt
-      )
+      set par.line(number-clearance: 200pt)
       block(
         width: 100%,
-        inset: (left: -2cm-timestamp-margin),
+        inset: (left: -2cm - timestamp-margin),
       )[
         #grid(
           columns: (2cm, 1fr),
@@ -248,26 +251,29 @@
               ]
             ]
           ],
-          it
+          it,
         )
       ]
     }
   ]
 
-  let royalty-connectors = custom-royalty-connectors + (
-    "von der",
-    "von",
-    "de"
+  let royalty-connectors = (
+    custom-royalty-connectors
+      + (
+        "von der",
+        "von",
+        "de",
+      )
   )
   let royalty-connectors = royalty-connectors.dedup()
 
-  let name-format(name) = {
+  let name-format(name, type-id) = {
     let first-name = name
     let last-name = none
     let numbered = false
 
     if (name.starts-with("%esc%")) {
-      return custom-name-style(name.slice(5))
+      return custom-name-style(name.slice(5), type-id)
     }
 
     if (name.contains(", ")) {
@@ -279,7 +285,7 @@
 
     return box[
       #show "???": set text(fill: red)
-      #custom-name-style(custom-name-format(first-name, last-name, numbered))
+      #custom-name-style(custom-name-format(first-name, last-name, numbered, type-id), type-id)
     ]
   }
 
@@ -288,22 +294,29 @@
     if (not name.contains(",") and name.contains(" ")) {
       let name-parts = name.split(" ")
 
-      if (name-parts.any(x => royalty-connectors.contains(x))){
+      if (name-parts.any(x => royalty-connectors.contains(x))) {
         let connector = name-parts.filter(x => royalty-connectors.contains(x)).first()
         let position = name-parts.position(x => x == connector)
         return name-parts.slice(position).join(" ") + ", " + name-parts.slice(0, position).join(" ")
       }
-      
+
       name = name-parts.at(-1) + ", " + name-parts.slice(0, -1).join(" ")
     }
     return name
   }
 
-  let pretty-name-connect(names) = {
+  let pretty-name-connect(names, type-id) = {
     if names.len() == 1 {
-      return name-format(format-name-no-context(names.at(0)))
+      return name-format(format-name-no-context(names.at(0)), type-id)
     } else {
-      names.slice(0,-1).map(x => name-format(format-name-no-context(x))).join(custom-name-style(", ")) + custom-name-style(" & ") + name-format(format-name-no-context(names.at(-1)))
+      (
+        names
+          .slice(0, -1)
+          .map(x => name-format(format-name-no-context(x), type-id))
+          .join(custom-name-style(", ", type-id))
+          + custom-name-style(" & ", type-id)
+          + name-format(format-name-no-context(names.at(-1)), type-id)
+      )
     }
   }
 
@@ -311,7 +324,7 @@
     if (name.starts-with("-")) {
       return "%esc%" + name.slice(1)
     }
-    
+
     if (not name.contains(",")) {
       let all = all.final()
 
@@ -329,7 +342,7 @@
         }
         return all.at(names.position(x => x == name))
       }
-      
+
       all = all.filter(x => x.contains(", "))
 
       // compare first name abbreviations
@@ -380,7 +393,7 @@
       if (names.contains(name)) {
         if (names.filter(x => x == name).len() > 1) {
           let split = name.split(" ")
-          return split.at(-1) + "???, " + split.slice(0,-1).join(" ")
+          return split.at(-1) + "???, " + split.slice(0, -1).join(" ")
         }
         return all.at(names.position(x => x == name))
       }
@@ -428,10 +441,20 @@
     return status-none
   }
 
+  // not-voting specials
+  let not-voting-specials = (:)
+  for non-voter in not-voting {
+    if (non-voter.contains("|")) {
+      let nv-split = non-voter.split("|")
+      not-voting-specials.insert(format-name-no-context(nv-split.at(0)), nv-split.at(1))
+    }
+  }
+  not-voting = not-voting.map(x => x.split("|").at(0))
+
   let without-not-voting(list) = {
     return list.filter(x => not (not-voting.map(x => format-name-no-context(x)).contains(x)))
   }
-  
+
   // Inline functions
   let join(time, name, long: false) = [
     #context [
@@ -440,11 +463,11 @@
       #let status = get-status(name)
       #if (long) {
         if (status == status-away) {
-          add-warning("\"" + name-format(name) + "\" joined (++), but was just gone for a while (-)")
+          add-warning("\"" + name-format(name, "warning") + "\" joined (++), but was just gone for a while (-)")
         } else if (status == status-away-perm) {
-          add-warning("\"" + name-format(name) + "\" joined (++), but already left permanently (--)")
+          add-warning("\"" + name-format(name, "warning") + "\" joined (++), but already left permanently (--)")
         }
-        
+
         pres.update(x => {
           if (not x.contains(name)) {
             x.push(name)
@@ -453,13 +476,13 @@
         })
       } else {
         if (status == status-away-perm) {
-          add-warning("\"" + name-format(name) + "\" joined (+), but already left permanently (--)")
+          add-warning("\"" + name-format(name, "warning") + "\" joined (+), but already left permanently (--)")
         } else if (status == status-none) {
-          add-warning("\"" + name-format(name) + "\" joined (+), but is unaccounted for")
+          add-warning("\"" + name-format(name, "warning") + "\" joined (+), but is unaccounted for")
         } else if (status != status-away) {
-          add-warning("\"" + name-format(name) + "\" joined (+), but was never away (-)")
+          add-warning("\"" + name-format(name, "warning") + "\" joined (+), but was never away (-)")
         }
-        
+
         away.update(x => {
           if (x.contains(name)) {
             _ = x.remove(x.position(x => x == name))
@@ -477,7 +500,7 @@
     #context [
       #let name = format-name(name)
       #let statement = [
-        _#name-format(name) #translate("JOIN" + if (long) {"_LONG"}, str(without-not-voting(pres.get()).len()), str(without-not-voting(pres.get()).len() + without-not-voting(away.get()).len()))_
+        _#name-format(name, "status") #translate("JOIN" + if (long) { "_LONG" }, str(without-not-voting(pres.get()).len()), str(without-not-voting(pres.get()).len() + without-not-voting(away.get()).len()))_
       ]
 
       #if (time == none) {
@@ -489,7 +512,7 @@
       }
     ]
   ]
-  
+
   let leave(time, name, long: false) = [
     #context [
       #let name = format-name(name)
@@ -497,13 +520,13 @@
       #let status = get-status(name)
       #if (long) {
         if (status == status-away-perm) {
-          add-warning("\"" + name-format(name) + "\" left (--), but already left permanently (--)")
+          add-warning("\"" + name-format(name, "warning") + "\" left (--), but already left permanently (--)")
         } else if (status != status-present) {
-          add-warning("\"" + name-format(name) + "\" left (--), but was not present (+)")
+          add-warning("\"" + name-format(name, "warning") + "\" left (--), but was not present (+)")
         } else if (status == status-none) {
-          add-warning("\"" + name-format(name) + "\" left (--), but is unaccounted for")
+          add-warning("\"" + name-format(name, "warning") + "\" left (--), but is unaccounted for")
         }
-        
+
         away.update(x => {
           if (x.contains(name)) {
             _ = x.remove(x.position(x => x == name))
@@ -524,15 +547,15 @@
         })
       } else {
         if (status == status-away) {
-          add-warning("\"" + name-format(name) + "\" left (-), but was away anyways (-)")
+          add-warning("\"" + name-format(name, "warning") + "\" left (-), but was away anyways (-)")
         } else if (status == status-away-perm) {
-          add-warning("\"" + name-format(name) + "\" left (-), but already left permanently (--)")
+          add-warning("\"" + name-format(name, "warning") + "\" left (-), but already left permanently (--)")
         } else if (status != status-present) {
-          add-warning("\"" + name-format(name) + "\" left (-), but was not present (+)")
+          add-warning("\"" + name-format(name, "warning") + "\" left (-), but was not present (+)")
         } else if (status == status-none) {
-          add-warning("\"" + name-format(name) + "\" left (-), but is unaccounted for")
+          add-warning("\"" + name-format(name, "warning") + "\" left (-), but is unaccounted for")
         }
-        
+
         pres.update(x => {
           if (x.contains(name)) {
             _ = x.remove(x.position(x => x == name))
@@ -547,10 +570,10 @@
         })
       }
     ]
-    #context [  
+    #context [
       #let name = format-name(name)
       #let statement = [
-        _#name-format(name) #translate("LEAVE" + if (long) {"_LONG"}, str(without-not-voting(pres.get()).len()), str(without-not-voting(pres.get()).len() + without-not-voting(away.get()).len()))_
+        _#name-format(name, "status") #translate("LEAVE" + if (long) { "_LONG" }, str(without-not-voting(pres.get()).len()), str(without-not-voting(pres.get()).len() + without-not-voting(away.get()).len()))_
       ]
 
       #if (time == none) {
@@ -564,67 +587,60 @@
   ]
 
   let dec(time, content, args) = [
-    #set par.line(
-      number-clearance: 200pt
-    )
+    #set par.line(number-clearance: 200pt)
     #let values = ()
     #if (args.values().all(x => type(x) == array)) {
-      values = args.keys().map(x => (
+      values = args
+        .keys()
+        .map(x => (
           name: x,
           value: int(args.at(x).at(0)),
           color: args.at(x).at(1),
-        )
-      )
+        ))
     } else {
-      values = args.keys().map(x => (
+      values = args
+        .keys()
+        .map(x => (
           name: x,
           value: int(args.at(x).at(0)),
-        )
-      )
+        ))
     }
-    #block(breakable: false)[
-      #if (time == none) {
-        [
-          ===== #translate("DECISION")
-        ]
-      } else {
-        timed(time)[
-          ===== #translate("DECISION")
-        ]
-      }
+    #v(2em, weak: true)
+    #let dec-block = block(breakable: false, inset: (left: if (indent-decisions) { 2em } else { 0pt }))[
+      ===== #translate("DECISION")
+      #v(-0.5em)
       #content
       #let total = values.map(x => x.value).sum(default: 1)
-        
+
       #if (fancy-decisions and values.at(0).keys().contains("color")) [
         #grid(
           gutter: 2pt,
-          columns: values.map(x => 
-            calc.max(if (x.value > 0) {0.2fr} else {0fr}, 1fr * (x.value / total))
-          ),
-          ..values.map(x =>
-            grid.cell(
-              fill: x.color.transparentize(80%),
-              inset: 0.5em
-            )[
-              #if (x.value > 0) [*#x.name* #x.value]
-            ]
-          ),
+          columns: values.map(x => calc.max(if (x.value > 0) { 0.2fr } else { 0fr }, 1fr * (x.value / total))),
+          ..values.map(x => grid.cell(
+            fill: x.color.transparentize(80%),
+            inset: 0.5em,
+          )[
+            #if (x.value > 0) [*#x.name* #x.value]
+          ]),
         )
       ] else [
         #values.map(x => [*#x.name*: #str(x.value)]).join([, ])
       ]
       #context [
         #if (total != without-not-voting(pres.get()).len()) {
-          add-warning(str(total) + " people voted, but " + str(without-not-voting(pres.get()).len()) + " were present", display: true)
+          add-warning(
+            str(total) + " people voted, but " + str(without-not-voting(pres.get()).len()) + " were present",
+            display: true,
+          )
         }
       ]
     ]
+    #if (time != none) [#timed(time, dec-block)] else [#dec-block]
+    #v(2em, weak: true)
   ]
 
   let end(time) = [
-    #set par.line(
-      number-clearance: 200pt
-    )
+    #set par.line(number-clearance: 200pt)
     #linebreak()
     #if (time == none) [==== #translate("END")] else {
       timed(time)[==== #translate("END")]
@@ -635,12 +651,24 @@
   // Regex
   let non-name-characters = " .:;?!"
   let regex-time-format = "[0-9]{1,4}"
-  let regex-name-format = "-?(" + royalty-connectors.join(" |") + " )?(\p{Lu})[^" + non-name-characters + "]*( " + royalty-connectors.join("| ") + ")?( (\p{Lu}|[0-9]+)[^" + non-name-characters + "]*)*"
+  let regex-name-format = (
+    "-?("
+      + royalty-connectors.join(" |")
+      + " )?(\p{Lu})[^"
+      + non-name-characters
+      + "]*( "
+      + royalty-connectors.join("| ")
+      + ")?( (\p{Lu}|[0-9]+)[^"
+      + non-name-characters
+      + "]*)*"
+  )
   let default-format = regex-time-format + "/[^\n]*"
   let optional-time-format = "(" + regex-time-format + "/)?[^\n]*"
 
   let default-regex(keyword, function, body, time-optional: false) = [
-    #show regex("^" + keyword.replace("+", "\+") + if (time-optional) {optional-time-format} else {default-format}): it => [
+    #show regex(
+      "^" + keyword.replace("+", "\+") + if (time-optional) { optional-time-format } else { default-format },
+    ): it => [
       #let text = it.text.slice(keyword.len())
       #let time = text.split("/").at(0)
       #let string = text.split("/").slice(1).join("/")
@@ -649,7 +677,7 @@
         string = time
         time = none
       }
-    
+
       #function(time, string)
     ]
 
@@ -685,41 +713,49 @@
       args-slice = 1
     }
 
-    #let args = text.split("/").slice(args-slice).enumerate().fold((:), (args, x) => {
-      let label = x.at(1).replace(regex("[0-9]"), "")
-      let value = x.at(1).replace(label, "")
+    #let args = (
+      text
+        .split("/")
+        .slice(args-slice)
+        .enumerate()
+        .fold(
+          (:),
+          (args, x) => {
+            let label = x.at(1).replace(regex("[0-9]"), "")
+            let value = x.at(1).replace(label, "")
 
-      if (label != "" and label.at(-1) == " ") {
-        label = label.slice(0,-1)
-      }
-      
-      let color-string = none
-      if (label.contains("|")) {
-        color-string = label.split("|").at(1)
-        label = label.replace("|" + color-string, "")
-      }
+            if (label != "" and label.at(-1) == " ") {
+              label = label.slice(0, -1)
+            }
 
-      if (label == "") {
-        label = str(x.at(0) + 1)
-      }
-      
-      label = label.replace("%slash%", "/")
-      if (color-string != none) {
-        args.insert(label, (value, eval(color-string)))
-      } else {
-        args.insert(label, value)
-      }
-      
-      return args;
-    })
-    
+            let color-string = none
+            if (label.contains("|")) {
+              color-string = label.split("|").at(1)
+              label = label.replace("|" + color-string, "")
+            }
+
+            if (label == "") {
+              label = str(x.at(0) + 1)
+            }
+
+            label = label.replace("%slash%", "/")
+            if (color-string != none) {
+              args.insert(label, (value, eval(color-string)))
+            } else {
+              args.insert(label, value)
+            }
+
+            return args
+          },
+        )
+    )
+
     #let text = text.split("/").at(args-slice - 1).replace("%slash%", "/")
 
-    #if (args.len() == 3
-      and args.keys().enumerate()
-        .all(x => str(x.at(0) + 1) == x.at(1))
-      and args.values()
-        .all(x => type(x) != array)
+    #if (
+      args.len() == 3
+        and args.keys().enumerate().all(x => str(x.at(0) + 1) == x.at(1))
+        and args.values().all(x => type(x) != array)
     ) {
       let yes = args.values().at(0)
       let no = args.values().at(1)
@@ -742,22 +778,22 @@
         return
       }
 
-      let name = text.slice(if (text.at(0) == "/") {1} else {2})
-    
+      let name = text.slice(if (text.at(0) == "/") { 1 } else { 2 })
+
       name = format-name(name)
-      
+
       if (text.at(0) != "/") {
         text.at(0)
       }
-      name-format(name)
-    
+      name-format(name, "dialogue")
+
       let status = get-status(name)
       if (status == status-away) {
-        add-warning("\"" + name-format(name) + "\" was mentioned, but was away (-)")
+        add-warning("\"" + name-format(name, "warning") + "\" was mentioned, but was away (-)")
       } else if (status == status-away-perm) {
-        add-warning("\"" + name-format(name) + "\" was mentioned, but left (--)")
+        add-warning("\"" + name-format(name, "warning") + "\" was mentioned, but left (--)")
       } else if (status == status-none) {
-        add-warning("\"" + name-format(name) + "\" was mentioned, but is unaccounted for")
+        add-warning("\"" + name-format(name, "warning") + "\" was mentioned, but is unaccounted for")
       }
     }
   }
@@ -770,23 +806,23 @@
         add-warning("date is missing", id: "DATE")
       } else if (date == auto) {
         [#datetime.today().display(date-format)]
-      }  else if (type(date) == datetime) {
+      } else if (type(date) == datetime) {
         [#date.display(date-format)]
-      } else {[#date]}
+      } else { [#date] }
 
       let formatted-body-name = if (body-name == none) {
         [MISSING]
         add-warning("body-name is missing", id: "BODY")
-      } else {[#body-name]}
+      } else { [#body-name] }
 
       let formatted-event-name = if (event-name == none) {
         [MISSING]
         add-warning("event-name is missing", id: "EVENT")
-      } else {[#event-name]}
+      } else { [#event-name] }
 
       if (custom-header == auto) {
         grid(
-          columns: if (logo != none) {(auto, 1fr)} else {(1fr)},
+          columns: if (logo != none) { (auto, 1fr) } else { 1fr },
           gutter: 1em,
           if (logo != none) {
             set image(
@@ -806,7 +842,9 @@
     },
     footer: context {
       let current-page = here().page()
-      let page-count = counter(page).final().first() - if (warnings.final().len() > 0 and not hide-warnings) {1} else {0}
+      let page-count = (
+        counter(page).final().first() - if (warnings.final().len() > 0 and not hide-warnings) { 1 } else { 0 }
+      )
       if (custom-footer == auto) {
         align(center, [#translate("PAGE", current-page, page-count)])
       } else if (custom-footer != none) {
@@ -819,20 +857,23 @@
       top: 3cm,
       bottom: 6cm,
     ),
-    background: 
-      if (custom-background == auto) {
-        if (hole-mark) {
-          place(left + top, dx: 5mm, dy: 100% / 2, line(
+    background: if (custom-background == auto) {
+      if (hole-mark) {
+        place(
+          left + top,
+          dx: 5mm,
+          dy: 100% / 2,
+          line(
             length: 4mm,
-            stroke: 0.25pt + black
-          ))
-        }
-      } else if (custom-background != none) {
-        custom-background(hole-mark)
+            stroke: 0.25pt + black,
+          ),
+        )
       }
-    ,
+    } else if (custom-background != none) {
+      custom-background(hole-mark)
+    },
   )
-  
+
   set text(
     10pt,
     lang: locale,
@@ -840,15 +881,18 @@
 
   set par(justify: true)
 
-  set heading(outlined: false, numbering: (..nums) => {
-    nums = nums.pos()
-    nums = nums.map(x => int(x / 2))
-    item-numbering(..nums)
-  })
-  show heading: set text (12pt)
+  set heading(
+    outlined: false,
+    numbering: (..nums) => {
+      nums = nums.pos()
+      nums = nums.map(x => int(x / 2))
+      item-numbering(..nums)
+    },
+  )
+  show heading: set text(12pt)
   show heading: it => {
     let text = if (it.body.has("children")) {
-      it.body.children.map(i => if (i.has("text")) {i.text} else {" "}).join()
+      it.body.children.map(i => if (i.has("text")) { i.text } else { " " }).join()
     } else {
       it.body.text
     }
@@ -863,8 +907,13 @@
     } else {
       (none, text)
     }
-    title = heading("\u{200B}" + title, level: it.level, outlined: it.level != 4 and text != translate("SCHEDULE"), numbering: if (it.level >= 4) {none} else {it.numbering})
-    
+    title = heading(
+      "\u{200B}" + title,
+      level: it.level,
+      outlined: it.level != 4 and text != translate("SCHEDULE"),
+      numbering: if (it.level >= 4) { none } else { it.numbering },
+    )
+
     let heading = if (time == none) {
       title
     } else {
@@ -876,8 +925,7 @@
           columns: (auto, 1fr),
           align: horizon,
           gutter: 1em,
-          heading,
-          line(length: 100%, stroke: 0.2pt),
+          heading, line(length: 100%, stroke: 0.2pt),
         )
       } else {
         heading
@@ -887,13 +935,12 @@
   }
 
   // Protokollkopf
-  
+
   let old-present = present
   let present = present + not-voting
   let present = present.map(x => format-name-no-context(x))
-  let present = present.sorted(key: x => upper(x))
   if (awareness != none) {
-    if (type(awareness) == "string") {
+    if (type(awareness) == str) {
       awareness = format-name-no-context(awareness)
       if (not present.contains(awareness)) {
         present.insert(0, awareness)
@@ -909,7 +956,7 @@
   }
   if (secretary != none) {
     secretary = format-name-no-context(secretary)
-    if (type(secretary) == "string") {
+    if (type(secretary) == str) {
       if (not present.contains(secretary)) {
         present.insert(0, secretary)
       }
@@ -924,7 +971,7 @@
   }
   if (chairperson != none) {
     chairperson = format-name-no-context(chairperson)
-    if (type(chairperson) == "string") {
+    if (type(chairperson) == str) {
       if (not present.contains(chairperson)) {
         present.insert(0, chairperson)
       }
@@ -939,63 +986,66 @@
   }
 
   let formatted-chairperson = if (chairperson == none) [
-    #custom-name-style("MISSING")
+    #custom-name-style("MISSING", "header")
     #add-warning("chairperson is missing")
-  ] else if (type(chairperson) == "string") {
-    [#name-format(format-name-no-context(chairperson))]
-  } else { 
-    [#pretty-name-connect(chairperson)]
+  ] else if (type(chairperson) == str) {
+    [#name-format(format-name-no-context(chairperson), "header")]
+  } else {
+    [#pretty-name-connect(chairperson, "header")]
   }
 
   let formatted-secretary = if (secretary == none) [
-    #custom-name-style("MISSING")
+    #custom-name-style("MISSING", "header")
     #add-warning("secretary is missing")
-  ] else if (type(secretary) == "string") {
-    [#name-format(format-name-no-context(secretary))]
-  } else { 
-    [#pretty-name-connect(secretary)]
+  ] else if (type(secretary) == str) {
+    [#name-format(format-name-no-context(secretary), "header")]
+  } else {
+    [#pretty-name-connect(secretary, "header")]
   }
 
   let formatted-awareness = if (awareness == none) {
     none
   } else {
-    if (type(awareness) == "string") {
-      [#name-format(format-name-no-context(awareness))]
-    } else { 
-      [#pretty-name-connect(awareness)]
+    if (type(awareness) == str) {
+      [#name-format(format-name-no-context(awareness), "header")]
+    } else {
+      [#pretty-name-connect(awareness, "header")]
     }
   }
 
   let formatted-translation = if (translation == none) {
     none
   } else {
-    if (type(translation) == "string") {
-      [#name-format(format-name-no-context(translation))]
-    } else { 
-      [#pretty-name-connect(translation)]
+    if (type(translation) == str) {
+      [#name-format(format-name-no-context(translation), "header")]
+    } else {
+      [#pretty-name-connect(translation, "header")]
     }
   }
-  
+
   let formatted-present = [
-    #let body-string = body.children.map(i => {
-      let body = if (i.has("body")) {i.body} else {i}
-      
-      return if (body.has("text")) {body.text} else {""}
-    }).join("\n")
+    #let body-string = (
+      body
+        .children
+        .map(i => {
+          let body = if (i.has("body")) { i.body } else { i }
+
+          return if (body.has("text")) { body.text } else { "" }
+        })
+        .join("\n")
+    )
     #if (body-string == none) {
       body-string = ""
     }
-    
+
     #let join-long-regex = "\n++" + optional-time-format
 
     #let matches = body-string.matches(regex(join-long-regex.replace("+", "\+")))
     #let time-matches = body-string.matches(regex(regex-time-format + "/")).filter(x => x.text.len() >= 4)
-    
-    #context[
-      #all.update(present)
+
+    #context [
       #let arrives-later = (:)
       #for match in matches {
-        
         let split = match.text.split("/")
 
         if (split.len() == 1) {
@@ -1018,15 +1068,17 @@
           arrives-later.insert(name, time)
         }
       }
-      
-      #let filtered = present.filter(x => not 
-      arrives-later.keys().contains(x))
+
+      #let present = present + arrives-later.keys().filter(x => not present.contains(x))
+      #let present = present.sorted(key: x => upper(x))
+      #all.update(present)
+      #let filtered = present.filter(x => not arrives-later.keys().contains(x))
       #pres.update(filtered)
       #grid(
         columns: calc.min(2, calc.ceil(present.len() / 10)) * (1fr,),
         row-gutter: 0.65em,
         ..present.map(x => {
-          name-format(x)
+          name-format(x, "header")
           if (show-arrival-time and arrives-later.keys().contains(x)) {
             if (arrives-later.at(x) == none) {
               [ (#translate("DURING_EVENT"))]
@@ -1035,12 +1087,14 @@
             }
           }
           if (not-voting.map(x => format-name-no-context(x)).contains(x)) {
-            [ (#translate("NOT_VOTING"))]
+            if (not-voting-specials.keys().contains(x)) [
+              (#not-voting-specials.at(x))
+            ] else [ (#translate("NOT_VOTING"))]
           }
         })
       )
     ]
-    
+
     #if (present.dedup().len() != present.len()) {
       add-warning("multiple people with the same name are present")
     }
@@ -1066,15 +1120,15 @@
       #if formatted-translation != none [
         \ *#translate("TRANSLATION")*: #formatted-translation
       ] \
-      
-      
+
+
       *#translate("PRESENT")*:
       #v(-0.5em)
 
       #pad(left: 1em)[
         #formatted-present
       ]
-      
+
       #if (formatted-present-count != none) [
         *#translate("PRESENT_COUNT")*: #formatted-present-count\
       ]
@@ -1082,7 +1136,7 @@
       #context {
         let start-time = start-time.final()
         if (start-time != none) [*#translate("START")*: #four-digits-to-time(start-time)\ ]
-        
+
         let end-time = last-time.final()
         if (end-time != none) [*#translate("END")*: #four-digits-to-time(end-time)]
       }
@@ -1121,16 +1175,15 @@
       timed([#four-digits-to-time(start-time)], [==== #translate("START")])
     }
   }
-  
+
   set par.line(
     numbering: x => {
       if (
-        line-numbering != none
-        and calc.rem(x, line-numbering) == 0
-      ) {text(size: 0.8em)[#x]}
+        line-numbering != none and calc.rem(x, line-numbering) == 0
+      ) { text(size: 0.8em)[#x] }
     },
     number-clearance: timestamp-margin,
-    numbering-scope: "page"
+    numbering-scope: "page",
   )
 
   //Hauptteil
@@ -1138,30 +1191,30 @@
     show regex("(.)?" + regex-name-format + "[^-]: [^\n]*"): it => {
       context {
         let break-line = it.text.at(0) == " "
-        let text = it.text.slice(if (break-line) {1} else {0})
+        let text = it.text.slice(if (break-line) { 1 } else { 0 })
         let name = text.split(": ").at(0)
         let text = text.split(": ").slice(1).join(": ")
-        
+
         name = format-name(name)
-        
+
         if (not fancy-dialogue) {
-          [#name-format(name): ]
+          [#name-format(name, "dialogue"): ]
         } else {
           if (break-line) {
             [\ ]
           }
-          
-          name-format(name) + ": "
+
+          name-format(name, "dialogue") + ": "
         }
         text
-        
+
         let status = get-status(name)
         if (status == status-away) {
-          add-warning("\"" + name-format(name) + "\" spoke, but was away (-)")
+          add-warning("\"" + name-format(name, "warning") + "\" spoke, but was away (-)")
         } else if (status == status-away-perm) {
-          add-warning("\"" + name-format(name) + "\" spoke, but left (--)")
+          add-warning("\"" + name-format(name, "warning") + "\" spoke, but left (--)")
         } else if (status == status-none) {
-          add-warning("\"" + name-format(name) + "\" spoke, but is unaccounted for")
+          add-warning("\"" + name-format(name, "warning") + "\" spoke, but is unaccounted for")
         }
       }
     }
@@ -1169,47 +1222,44 @@
     show regex("-:"): it => {
       [:]
     }
-  
+
     body
   }
-  
+
   //Schluss
-  set par.line(
-    number-clearance: 200pt
-  )
+  set par.line(number-clearance: 200pt)
   context {
     let count-away = away.get().len()
     if (count-away > 0) {
       add-warning(str(count-away) + " people are still away (-), but the document ended")
     }
   }
-  
+
   help-text()
-  
+
   if (signing) {
     block(breakable: false)[
       #v(3cm)
       #translate("SIGNATURE_PRE"):
-      
+
       #v(1cm)
       #grid(
         columns: (1fr, 1fr, 1fr),
         align: center,
         gutter: 0.65em,
-        line(length: 100%, stroke: 0.5pt),
-        line(length: 100%, stroke: 0.5pt),
-        line(length: 100%, stroke: 0.5pt),
+        line(length: 100%, stroke: 0.5pt), line(length: 100%, stroke: 0.5pt), line(length: 100%, stroke: 0.5pt),
         [#translate("PLACE_DATE")],
         [#translate("SIGNATURE") #if (cosigner == none) [#translate("CHAIR")] else [#cosigner]],
         [#translate("SIGNATURE") #translate("PROTOCOL")],
+
         [],
         if (cosigner == none) {
           if (chairperson == none) {
-            name-format("MISSING")
-          } else if (type(chairperson) == "string") {
-            name-format(chairperson)
-          } else { 
-            chairperson.map(x => name-format(x)).join("\n")
+            name-format("MISSING", "signature")
+          } else if (type(chairperson) == str) {
+            name-format(chairperson, "signature")
+          } else {
+            chairperson.map(x => name-format(x, "signature")).join("\n")
           }
         } else {
           name-format(
@@ -1218,15 +1268,16 @@
               add-warning("cosigner-name is missing")
             } else {
               cosigner-name
-            }
+            },
+            "signature",
           )
         },
         if (secretary == none) {
-          name-format("MISSING")
-        } else if (type(secretary) == "string") {
-          name-format(secretary)
-        } else { 
-          secretary.map(x => name-format(x)).join("\n")
+          name-format("MISSING", "signature")
+        } else if (type(secretary) == str) {
+          name-format(secretary, "signature")
+        } else {
+          secretary.map(x => name-format(x, "signature")).join("\n")
         },
       )
     ]

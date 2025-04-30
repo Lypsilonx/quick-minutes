@@ -6,7 +6,7 @@ With Quick Minutes you can record any meeting event by just typing it out. No fu
 
 ### Import & Initialisation
 ```typ
-#import "@preview/quick-minutes:1.2.1": *
+#import "@preview/quick-minutes:1.2.2": *
 
 #show: minutes.with(
   chairperson: "Name 1",
@@ -39,7 +39,7 @@ With Quick Minutes you can record any meeting event by just typing it out. No fu
 || event-name | Name of the meeting | `none` | `string`
 || date | Date of the meeting (`auto` for current date, datetime for formatted date) | `none` | `string, auto, datetime`
 || present | List with names of people present at the meeting | `()` | list
-|| not-voting | List with names of people present, but without right to vote (they will not be counted in the present totals) | `()` | list
+|| not-voting | List with names of people present, but without right to vote (they will not be counted in the present totals). Add a descriptor after a `\|` to replace the default indicator in the document head | `()` | list
 || chairperson | Name of the person chairing the meeting<br>Can be a `list` of people | `none` | `string`, `list(string)`
 || secretary | Name of the person taking minutes<br>Can be a `list` of people | `none` | `string`, `list(string)`
 | optional |
@@ -55,14 +55,15 @@ With Quick Minutes you can record any meeting event by just typing it out. No fu
 || custom-footer | Custom Footer<br><br>Arguments:<br>(current-page, page-count, translate)<br><br>Set to `none` for empty footer<br><br>Is called inside of `context` | `auto` | `function(int, int, function(string, ..string))`, `auto`
 || custom-background | Custom Background<br><br>Arguments:<br>(hole-mark)<br><br>Set to `none` for empty background | `auto` | `function(bool)`, `auto`
 || custom-head-section | Custom Head Section<br><br>Arguments:<br>(chairperson, secretary, awareness, translation, present, present-count, start-time, end-time, translate, four-digits-to-time)<br><br>Set to `none` for empty head section<br><br>Handle start-time & end-time like this:<br><pre>let start-time = start-time.final()<br>if (start-time != none) [\*#translate("START")\*: #four-digits-to-time(start-time)\ ] | `auto` | `function(content, content, content/none, content/none, content, int/none, state, state, function(string, ..string), function(string))`, `auto`
-|| custom-name-format | Formatting of names in the document | <pre>(first-name, last-name, numbered) => [<br>&nbsp;#if (numbered) [#first-name #last-name] else [<br>&nbsp;&nbsp;#if (last-name != none) [#last-name, ]#first-name]<br>]</pre> | `function(string, string, bool)`
-|| custom-name-style | Style of names in the document | <pre>(name) => [name] | `function(string)`
+|| custom-name-format | Formatting of names in the document | <pre>(first-name, last-name, numbered, type-id) => [<br>&nbsp;#if (numbered) [#first-name #last-name] else [<br>&nbsp;&nbsp;#if (last-name != none) [#last-name, ]#first-name]<br>]</pre> `type-id`: Informs about the use of the name. Can be "dialogue", "header", "status", "signature" or "warning" | `function(string, string, bool, string)`
+|| custom-name-style | Style of names in the document | <pre>(name, type-id) => [name]</pre> `type-id`: Informs about the use of the name. Can be "dialogue", "header", "status", "signature" or "warning" | `function(string, string)`
 || item-numbering | Numbering of items. Reverts to `DEFAULT_ITEM_NUMBERING` if `none`.  | `none` | `function(..int)`
 || time-format | Datetime format `string` for times taken. Reverts to `DEFAULT_TIME_FORMAT` if `none`. | `none` | `string`
 || date-format | Datetime format `string` for the date of the event. Reverts to `DEFAULT_DATE_FORMAT` if `none`.| `none` | `string`
 || timestamp-margin | Size of gutter between timestamps and text | `10pt` | `length`<br>(static (pt, cm ...) recommended)
 || line-numbering | `none` for no line numbering, `int` for every xth line numbered | `5` | `int`
 || fancy-decisions | Draws a diagram underneath decisions | `false` | `bool`
+|| indent-decisions | Indents decisions | `true` | `bool`
 || fancy-dialogue | Splits dialogue up into paragraphs | `false` | `bool`
 || hole-mark | Draws a mark for the alignment of a hole punch | `true` | `bool`
 || separator-lines | Draws lines next to the titles | `true` | `bool`
