@@ -44,6 +44,7 @@ With Quick Minutes you can record any meeting event by just typing it out. No fu
 || secretary | Name of the person taking minutes<br>Can be a `list` of people | `none` | `string`, `list(string)`
 | optional |
 ||
+|| location | Location of the meeting | `none` | `string`
 || awareness | Name of the person responsible for awareness<br>Can be a `list` of people | `none` | `string`, `list(string)`
 || translation | Name of the person responsible for translating<br>Can be a `list` of people | `none` | `string`, `list(string)`
 || cosigner | Position of the Person signing the protocol, should they differ from the chairperson | `none` | `string`

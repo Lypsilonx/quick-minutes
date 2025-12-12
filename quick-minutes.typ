@@ -13,6 +13,7 @@
   not-voting: (),
   chairperson: none,
   secretary: none,
+  location: none,
   awareness: none,
   translation: none,
   cosigner: none,
@@ -1112,6 +1113,7 @@
 
   if (custom-head-section == auto) {
     [
+      #if location != none [*#translate("LOCATION")*: #location\ ]
       *#translate("CHAIR")*: #formatted-chairperson\
       *#translate("PROTOCOL")*: #formatted-secretary
       #if formatted-awareness != none [
@@ -1151,6 +1153,7 @@
     ]
   } else if (custom-head-section != none) {
     custom-head-section(
+      location,
       formatted-chairperson,
       formatted-secretary,
       formatted-awareness,
