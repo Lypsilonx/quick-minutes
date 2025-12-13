@@ -1115,14 +1115,9 @@
     [
       #if location != none [*#translate("LOCATION")*: #location\ ]
       *#translate("CHAIR")*: #formatted-chairperson\
-      *#translate("PROTOCOL")*: #formatted-secretary
-      #if formatted-awareness != none [
-        \ *#translate("AWARENESS")*: #formatted-awareness
-      ]
-      #if formatted-translation != none [
-        \ *#translate("TRANSLATION")*: #formatted-translation
-      ] \
-
+      *#translate("PROTOCOL")*: #formatted-secretary\
+      #if formatted-awareness != none [*#translate("AWARENESS")*: #formatted-awareness\ ]
+      #if formatted-translation != none [*#translate("TRANSLATION")*: #formatted-translation\ ]
 
       *#translate("PRESENT")*:
       #v(-0.5em)
