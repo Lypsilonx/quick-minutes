@@ -10,7 +10,7 @@ keywords = ["protocol", "minutes", "time", "timekeeping", "recording", "record"]
 license = "MIT"
 name = "quick-minutes"
 repository = "https://github.com/Lypsilonx/quick-minutes"
-version = "1.2.2"
+version = "1.2.3"
 
 [template]
 entrypoint = "preview.typ"

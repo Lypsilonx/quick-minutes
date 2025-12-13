@@ -107,6 +107,10 @@
     "en": "Place, Date",
     "de": "Ort, Datum"
   },
+  "LOCATION": {
+    "en": "Location",
+    "de": "Ort"
+  },
   "PAGE": {
     "en": "Page [0] of [1]",
     "de": "Seite [0] von [1]"

@@ -13,6 +13,7 @@
   not-voting: (),
   chairperson: none,
   secretary: none,
+  location: none,
   awareness: none,
   translation: none,
   cosigner: none,
@@ -1112,15 +1113,11 @@
 
   if (custom-head-section == auto) {
     [
+      #if location != none [*#translate("LOCATION")*: #location\ ]
       *#translate("CHAIR")*: #formatted-chairperson\
-      *#translate("PROTOCOL")*: #formatted-secretary
-      #if formatted-awareness != none [
-        \ *#translate("AWARENESS")*: #formatted-awareness
-      ]
-      #if formatted-translation != none [
-        \ *#translate("TRANSLATION")*: #formatted-translation
-      ] \
-
+      *#translate("PROTOCOL")*: #formatted-secretary\
+      #if formatted-awareness != none [*#translate("AWARENESS")*: #formatted-awareness\ ]
+      #if formatted-translation != none [*#translate("TRANSLATION")*: #formatted-translation\ ]
 
       *#translate("PRESENT")*:
       #v(-0.5em)
@@ -1151,6 +1148,7 @@
     ]
   } else if (custom-head-section != none) {
     custom-head-section(
+      location,
       formatted-chairperson,
       formatted-secretary,
       formatted-awareness,
