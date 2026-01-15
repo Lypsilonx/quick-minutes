@@ -1,9 +1,9 @@
 #let noun(it) = [#text(features: ("smcp",), tracking: 0.025em)[#it]] //small caps with proper tracking
 #let versal(it) = [#text(tracking: 0.125em, number-type: "lining")[#upper[#it]]] //all caps with proper tracking
 #let lang(it, content) = [#text(
-    lang: it,
-    style: "italic",
-  )[#content]] //change the language for a word or two or a longer period for language appropriate smartquotes and stuff. Also italicises the foreign text
+  lang: it,
+  style: "italic",
+)[#content]] //change the language for a word or two or a longer period for language appropriate smartquotes and stuff. Also italicises the foreign text
 
 #let minutes(
   body-name: none,
@@ -39,6 +39,16 @@
   fancy-dialogue: false,
   hole-mark: true,
   separator-lines: true,
+  margin: (
+    left: 4cm,
+    right: 2cm,
+    top: 3cm,
+    bottom: 6cm,
+  ),
+  font_size: 10pt,
+  font_size_title: auto,
+  font_size_time: auto,
+  font_size_line_number: auto,
   signing: true,
   locale: "en",
   translation-overrides: (:),
@@ -49,6 +59,7 @@
   display-all-warnings: false,
   hide-warnings: false,
   warning-color: red,
+  help-text-color: blue,
   enable-help-text: false,
   body,
 ) = {
@@ -70,7 +81,7 @@
 
   let help-text() = if (enable-help-text) {
     context [
-      #set text(fill: blue)
+      #set text(fill: help-text-color)
       #block(breakable: false)[
         last-time: #last-time.get()
 
@@ -87,7 +98,7 @@
           [
             gone: #away-perm.get().len()\
             #away-perm.get().map(x => "    " + x).join("\n")\
-          ]
+          ],
         )
       ]
     ]
@@ -237,14 +248,14 @@
       set par.line(number-clearance: 200pt)
       block(
         width: 100%,
-        inset: (left: -2cm - timestamp-margin),
+        inset: (left: -100000pt - timestamp-margin),
       )[
         #grid(
-          columns: (2cm, 1fr),
+          columns: (100000pt, 1fr),
           column-gutter: timestamp-margin,
           align(right)[
             #v(0.05em)
-            #text(10pt, weight: "regular")[
+            #text(if (font_size_time == auto) { font_size } else { font_size_time }, weight: "regular")[
               #if (type(time) == content) [
                 #time
               ] else [
@@ -285,7 +296,7 @@
     }
 
     return box[
-      #show "???": set text(fill: red)
+      #show "???": set text(fill: warning-color)
       #custom-name-style(custom-name-format(first-name, last-name, numbered, type-id), type-id)
     ]
   }
@@ -852,12 +863,7 @@
         custom-footer(current-page, page-count, translate)
       }
     },
-    margin: (
-      left: 4cm,
-      right: 2cm,
-      top: 3cm,
-      bottom: 6cm,
-    ),
+    margin: margin,
     background: if (custom-background == auto) {
       if (hole-mark) {
         place(
@@ -876,7 +882,7 @@
   )
 
   set text(
-    10pt,
+    font_size,
     lang: locale,
   )
 
@@ -890,7 +896,9 @@
       item-numbering(..nums)
     },
   )
-  show heading: set text(12pt)
+  show heading: set text(
+    if (font_size_title == auto) { font_size * 1.3 } else { font_size_title },
+  )
   show heading: it => {
     let text = if (it.body.has("children")) {
       it.body.children.map(i => if (i.has("text")) { i.text } else { " " }).join()
@@ -1178,7 +1186,11 @@
     numbering: x => {
       if (
         line-numbering != none and calc.rem(x, line-numbering) == 0
-      ) { text(size: 0.8em)[#x] }
+      ) {
+        text(
+          if (font_size_line_number == auto) { font_size * 0.8 } else { font_size_line_number },
+        )[#x]
+      }
     },
     number-clearance: timestamp-margin,
     numbering-scope: "page",
