@@ -911,7 +911,7 @@
       return
     }
 
-    let (time, title) = if (text.match(regex(regex-time-format + "/")) != none) {
+    let (time, title) = if (text.match(regex("^" + regex-time-format + "/")) != none) {
       (text.split("/").at(0), text.split("/").slice(1).join("/"))
     } else {
       (none, text)
@@ -1050,7 +1050,7 @@
     #let join-long-regex = "\n++" + optional-time-format
 
     #let matches = body-string.matches(regex(join-long-regex.replace("+", "\+")))
-    #let time-matches = body-string.matches(regex(regex-time-format + "/")).filter(x => x.text.len() >= 4)
+    #let time-matches = body-string.matches(regex("\n" + regex-time-format + "/")).filter(x => x.text.len() >= 6)
 
     #context [
       #let arrives-later = (:)
@@ -1067,7 +1067,7 @@
           if (time.len() > 2) {
             hours = time.slice(0, 2)
           } else {
-            let last-time = time-matches.filter(x => x.end < match.start).last().text.slice(0, -1)
+            let last-time = time-matches.filter(x => x.end < match.start).last().text.slice(0, -1).slice(1)
 
             hours = last-time.slice(0, 2)
           }
